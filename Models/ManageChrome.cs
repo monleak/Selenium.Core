@@ -89,14 +89,15 @@ public partial class ManageChrome : ObservableRecipient
         executeInMainThread?.Invoke(() => updateStatus(ManageChromeStatus.OpenChrome, true));
     }
 
-    public void ExecuteAction(Action<IWebDriver> action, Action<Action> executeInMainThread = null)
+    public void ExecuteAction(Func<IWebDriver, object> action, out object result, Action<Action> executeInMainThread = null)
     {
-        if(_driver is IWebDriver driver)
+        result = null;
+        if (_driver is IWebDriver driver)
         {
             try 
             {
                 executeInMainThread?.Invoke(() => updateStatus(ManageChromeStatus.Running, true));
-                action(driver);
+                result = action(driver);
                 executeInMainThread?.Invoke(() => updateStatus(ManageChromeStatus.Stop, true));
             }
             catch (NoSuchWindowException)
@@ -124,6 +125,11 @@ public partial class ManageChrome : ObservableRecipient
 
     public void QuitBrowser()
     {
+        if(status == ManageChromeStatus.Running)
+        {
+            return;
+        }
+
         try
         {
             if(_driver is IWebDriver driver)
@@ -139,7 +145,7 @@ public partial class ManageChrome : ObservableRecipient
             process.Kill();
         }
         catch { }
-        updateStatus(ManageChromeStatus.CloseChrome);
+        updateStatus(ManageChromeStatus.CloseChrome,true);
     }
 
     private bool checkDriver()
@@ -155,6 +161,15 @@ public partial class ManageChrome : ObservableRecipient
         catch { }
 
         return false;
+    }
+
+    public void Refresh()
+    {
+        if (status != ManageChromeStatus.Init && !checkDriver())
+        {
+            updateStatus(ManageChromeStatus.CloseChrome,true);
+        }
+        updateStatusDescription();
     }
 
     public bool CanRemoveProfile()
