@@ -29,4 +29,16 @@ public static class WebDriverWaitExtensions
             return null; // Không tìm thấy điều kiện nào thỏa mãn
         });
     }
+
+    public static bool InvisibilityOfElementLocated(this IWebElement element)
+    {
+        try
+        {
+            return !element.Displayed;
+        }
+        catch
+        {
+            return true;
+        }
+    }
 }
